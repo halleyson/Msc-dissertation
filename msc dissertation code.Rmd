@@ -1,30 +1,34 @@
 ---
 title: "msc dissertation"
 author: "Halleyson Li"
-date: "14/07/2021"
+date: "'r Sys.Date()'"
 output: html_document
+line-citations: apalike
+linkcolor: blue
+frontsize: 12pt
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+\newpage
+
+# *Notes*{-}
+1. The GitHub repository for this project could access through [here](https://github.com/halleyson/msc-dissertation.git)
+
+# Loading data
+
+```{r, message=FALSE}
+
+library(readr)
+
+pennycook1 <- read_csv("Pennycook et al._Study 1.csv")
+Pennycook2 <- read_csv("Pennycook et al._Study 2.csv")
+
+
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
-```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
