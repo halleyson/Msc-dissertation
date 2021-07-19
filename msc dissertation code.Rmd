@@ -52,13 +52,58 @@ pennystudy2r1$Real[pennystudy2r1$Real > 0 & pennystudy2r1$Real < 4] <- 0
 pennystudy2r1$Real[pennystudy2r1$Real > 3 & pennystudy2r1$Real < 7] <- 1
 pennystudy2r1$Real
 
+
+#create veracity column (Real - Fake)
+pennystudy2r1['veracity']=pennystudy2r1['Real'] - pennystudy2r1['Fake']
+
+#successful screen1 test (result = 2)
+pennystudy2r1['screen1']=pennystudy2r1['screen1_4'] + pennystudy2r1['screen1_7']
+
+#successful screen2 test (result = 2)
+pennystudy2r1['screen2']=pennystudy2r1['screen2_3'] + pennystudy2r1['screen2_5']
+
+#successful screen3 test (result = 3)
+pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3_2,1)
+pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,2)
+pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,4)
+pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,5)
+#to check if screen 3 successful
+mean(pennystudy2r1$screen3, na.rm = TRUE)
+
+#replace 2 and 3 to 1
+pennystudy2r1["screen1"][pennystudy2r1["screen1"] == 2] <- 1
+pennystudy2r1["screen2"][pennystudy2r1["screen2"] == 2] <- 1
+pennystudy2r1["screen3"][pennystudy2r1["screen3"] == 3] <- 1
+
+
 ```
+
+
 ## reproduction of results (interaction between headline veracity and treatment)
 ### without considering attention check
 ```{r, message=FALSE}
+install.packages("sandwich") 
+install.packages("stargazer")
+install.packages("lmtest")
+library(lmtest)
+library(stargazer) 
+library(sandwich)
 
-lm1 = lm(Discern ~ condition, data = pennystudy2r1)
+
+lm1 <- lm(Discern ~ condition + veracity + veracity*condition, data = pennystudy2r1)
 summary(lm1)
+
+stargazer(lm1, type='text')
+
+coeftest(lm1, vcovHC)
+
+#z scored
+scale(pennystudy2r1$Discern)
+
+
+lm1 = lm(scale(pennystudy2r1$Discern) ~ condition, data = pennystudy2r1)
+summary(lm1)
+
 
 
 ```
