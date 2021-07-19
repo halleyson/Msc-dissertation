@@ -20,11 +20,92 @@ frontsize: 12pt
 library(readr)
 
 pennycook1 <- read_csv("Pennycook et al._Study 1.csv")
-Pennycook2 <- read_csv("Pennycook et al._Study 2.csv")
+pennycook2 <- read_csv("Pennycook et al._Study 2.csv")
+# Quick check
+head(pennycook2)
 
+```
+
+# General steps to regenerate headline result (study 2)
+## data cleaning
+
+```{r, message=FALSE}
+
+# rename columns that contains special characters
+colnames(pennycook2)
+names(pennycook2)[1] <- "condition"
+
+#conclude a sheet with only the relevant information 
+#condition 1 = control; condition 2 = treatment 
+
+#Choose with the column position 
+library("dplyr")
+pennystudy2r1 <- pennycook2 %>% 
+  select (c(1, 2, 3, 4, 57, 60, 250, 252, 284))
+
+#re-code sharing intentions (fake/real) using the scale midpoint (1-3 = 0, 4-6 = 1)
+pennystudy2r1$Fake[pennystudy2r1$Fake > 0 & pennystudy2r1$Fake < 4] <- 0
+pennystudy2r1$Fake[pennystudy2r1$Fake > 3 & pennystudy2r1$Fake < 7] <- 1
+pennystudy2r1$Fake
+
+pennystudy2r1$Real[pennystudy2r1$Real > 0 & pennystudy2r1$Real < 4] <- 0
+pennystudy2r1$Real[pennystudy2r1$Real > 3 & pennystudy2r1$Real < 7] <- 1
+pennystudy2r1$Real
+
+```
+## reproduction of results (interaction between headline veracity and treatment)
+### without considering attention check
+```{r, message=FALSE}
+
+lm1 = lm(Discern ~ condition, data = pennystudy2r1)
+summary(lm1)
 
 
 ```
+
+
+
+
+### reproduction of figure 2 without considering attention check
+
+
+```{r, message=FALSE}
+pennystudy2r1$screen3_2
+
+library(ggplot2)
+
+pennystudy2plot1 <- pennystudy2r1 %>% 
+  select (c(1, 2, 3))
+
+
+library(reshape2)
+
+pennystudy2plot1 <- melt(pennystudy2plot1, id = 'condition')
+head(pennystudy2plot1)
+
+#Find out the sum for each type of news in different condition
+p1 <- aggregate(value~condition+variable, data = pennystudy2plot1, FUN = sum)
+
+
+ggplot(p1, aes(x = condition, y = value / 428, fill = variable)) + 
+  geom_bar(stat = 'identity',position = 'dodge')
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
