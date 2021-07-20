@@ -67,10 +67,10 @@ pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3_2,1)
 pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,2)
 pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,4)
 pennystudy2r1['screen3'] = na_if(pennystudy2r1$screen3,5)
-#to check if screen 3 successful
+#check if screen 3 successful
 mean(pennystudy2r1$screen3, na.rm = TRUE)
 
-#replace 2 and 3 to 1
+#re-code screen test: replace 2 and 3 to 1
 pennystudy2r1["screen1"][pennystudy2r1["screen1"] == 2] <- 1
 pennystudy2r1["screen2"][pennystudy2r1["screen2"] == 2] <- 1
 pennystudy2r1["screen3"][pennystudy2r1["screen3"] == 3] <- 1
