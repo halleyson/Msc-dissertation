@@ -75,6 +75,9 @@ pennystudy2r1["screen1"][pennystudy2r1["screen1"] == 2] <- 1
 pennystudy2r1["screen2"][pennystudy2r1["screen2"] == 2] <- 1
 pennystudy2r1["screen3"][pennystudy2r1["screen3"] == 3] <- 1
 
+#replace condition control = 0 treatment = 1
+pennystudy2r1["condition"][pennystudy2r1["condition"] == 1] <- 0
+pennystudy2r1["condition"][pennystudy2r1["condition"] == 2] <- 1
 
 ```
 
@@ -90,7 +93,7 @@ library(stargazer)
 library(sandwich)
 
 
-lm1 <- lm(Discern ~ condition + veracity + veracity*condition, data = pennystudy2r1)
+lm1 <- lm(Discern ~ Real + Real*condition, data = pennystudy2r1)
 summary(lm1)
 
 stargazer(lm1, type='text')
