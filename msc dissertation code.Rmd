@@ -79,6 +79,50 @@ pennystudy2r1["screen3"][pennystudy2r1["screen3"] == 3] <- 1
 pennystudy2r1["condition"][pennystudy2r1["condition"] == 1] <- 0
 pennystudy2r1["condition"][pennystudy2r1["condition"] == 2] <- 1
 
+#replace NA to 0 in screen 1,2,3
+
+pennystudy2r1[c("screen1","screen2","screen3")][is.na(pennystudy2r1[c("screen1","screen2","screen3")])] <- 0
+
+#create dummy column, add screen 1,2,3 together. Screen = 3 indicate success in all attention check
+pennystudy2r1['dummycheck']=pennystudy2r1['screen1'] + pennystudy2r1['screen2'] + pennystudy2r1['screen3']
+
+
+#like the researcher did, change data frame from wide to long
+##first drop unnecessary column
+pennys2r1long <- subset(pennystudy2r1, select = c(1,2,3,4,10,14))
+
+##Add ID column
+pennys2r1long <- tibble::rowid_to_column(pennys2r1long, "ID")
+
+## change from wide to long
+library(tidyr)
+
+keycol <- "newstype"
+valuecol <- "measurement"
+gathercols <- c("Fake","Real")
+
+pennys2r1long <- gather_(pennys2r1long, keycol, valuecol, gathercols)
+
+##no idea why it doesn't show groups (control vs treatment) so I merge original condition to the new one
+
+merge(pennystudy2r1, pennys2r1long, by.x='condition', by.y='ID')
+
+##organize data by ID, then reorder the column
+pennys2r1long <- pennys2r1long[order(pennys2r1long$ID),]
+
+pennys2r1long <- pennys2r1long[, c(1, 2, 6, 7, 4, 5, 3)]
+
+##separating the data based on number of successful attention check
+
+### attention check above and equal to 1
+pennys2r1longa1 <- subset(pennys2r1long, dummycheck %in% c("1","2","3"))
+
+### attention check above and equal to 2
+pennys2r1longa2 <- subset(pennys2r1long, dummycheck %in% c("2","3"))
+
+### attention check equal to 3
+pennys2r1longa3 <- subset(pennys2r1long, dummycheck %in% c("3"))
+
 ```
 
 
@@ -93,7 +137,7 @@ library(stargazer)
 library(sandwich)
 
 
-lm1 <- lm(Discern ~ Real + Real*condition, data = pennystudy2r1)
+lm1 <- lm(veracity ~ newstype + newstype*condition, data = pennys2r1longa2)
 summary(lm1)
 
 stargazer(lm1, type='text')
@@ -104,45 +148,105 @@ coeftest(lm1, vcovHC)
 scale(pennystudy2r1$Discern)
 
 
-lm1 = lm(scale(pennystudy2r1$Discern) ~ condition, data = pennystudy2r1)
-summary(lm1)
+install.packages("effectsize")
+library(effectsize)
 
+cohens_d(pennystudy2r1)
 
 
 ```
-
 
 
 
 ### reproduction of figure 2 without considering attention check
 
-
+### graph 1: including all
 ```{r, message=FALSE}
-pennystudy2r1$screen3_2
 
 library(ggplot2)
 
-pennystudy2plot1 <- pennystudy2r1 %>%
-  select (c(1, 2, 3))
+#Since the plot not specify which condition they use, then I need to plot all 4 graph in different condition
 
+#condition 1: all
 
-library(reshape2)
-
-pennystudy2plot1 <- melt(pennystudy2plot1, id = 'condition')
-head(pennystudy2plot1)
+pennystudy2plot1 <- pennys2r1long %>%
+  select (c(1, 2, 3, 4))
 
 #Find out the sum for each type of news in different condition
-p1 <- aggregate(value~condition+variable, data = pennystudy2plot1, FUN = sum)
+p1 <- aggregate(measurement~condition+newstype, data = pennystudy2plot1, FUN = sum)
 
+##double check for correctness
+sum(pennystudy2plot1$measurement,na.rm = TRUE)
 
-ggplot(p1, aes(x = condition, y = value / 428, fill = variable)) + 
-  geom_bar(stat = 'identity',position = 'dodge')
+#since the obs is 1712, thus 1712/2 = 856 participants. So to get percentage of sharing intention each fake and real news need to divided by 856/2 = 428
+ggplot(p1, aes(x = condition, y = measurement/428, fill = newstype)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = round(measurement/428, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
+    scale_y_continuous(labels = scales::percent)
+```
+### graph 2 attention check above and equal to 1
 
+```{r, message=FALSE}
 
+#condition 2: above and equal to 1
+
+pennystudy2plot2 <- pennys2r1longa1 %>%
+  select (c(1, 2, 3, 4))
+
+#Find out the sum for each type of news in different condition
+p2 <- aggregate(measurement~condition+newstype, data = pennystudy2plot2, FUN = sum)
+
+##double check for correctness
+sum(pennystudy2plot2$measurement,na.rm = TRUE)
+
+#since the obs is 1664, thus 1664/2 = 832 participants. So to get percentage of sharing intention each fake and real news need to divided by 832/2 = 416
+ggplot(p2, aes(x = condition, y = measurement/416, fill = newstype)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = round(measurement/416, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
+    scale_y_continuous(labels = scales::percent)
 ```
 
+### graph 3 attention check above and equal to 2
+```{r, message=FALSE}
+#condition 3: above and equal to 2
+pennystudy2plot3 <- pennys2r1longa2 %>%
+  select (c(1, 2, 3, 4))
 
+#Find out the sum for each type of news in different condition
+p3 <- aggregate(measurement~condition+newstype, data = pennystudy2plot3, FUN = sum)
 
+##double check for correctness
+sum(pennystudy2plot3$measurement,na.rm = TRUE)
+
+#since the obs is 1292 for attention > 2, thus 1292/2 = 646 participants. So to get percentage of sharing intention each fake and real news need to divided by 646/2 = 323
+ggplot(p3, aes(x = condition, y = measurement/323, fill = newstype)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = round(measurement/323, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
+    scale_y_continuous(labels = scales::percent)
+```
+
+### graph 4 attention check equal to 3
+```{r, message=FALSE}
+#condition 3: equal to 3
+pennystudy2plot4 <- pennys2r1longa3 %>%
+  select (c(1, 2, 3, 4))
+
+#Find out the sum for each type of news in different condition
+p4 <- aggregate(measurement~condition+newstype, data = pennystudy2plot4, FUN = sum)
+
+##double check
+sum(pennystudy2plot4$measurement,na.rm = TRUE)
+
+#since the obs is 460 for attention = 3, thus 460/2 = 230 participants. So to get percentage of sharing intention each fake and real news need to divided by 230/2 = 115
+ggplot(p4, aes(x = condition, y = measurement/115, fill = newstype)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = round(measurement/115, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
+    scale_y_continuous(labels = scales::percent)
+```
 
 
 
