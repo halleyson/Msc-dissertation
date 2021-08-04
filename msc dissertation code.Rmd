@@ -305,7 +305,7 @@ cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE
 ### reproduction of figure 2 without considering attention check
 
 ### graph 1: including all
-```{r, message=FALSE}
+```{r}
 
 library(ggplot2)
 
