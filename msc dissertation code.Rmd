@@ -147,12 +147,33 @@ coeftest(lm1, vcovHC)
 #z scored
 scale(pennystudy2r1$Discern)
 
+#calculate the effect size cohen's d
+##since they need to compare true vs false headline in different condition, thus, create a new data frame that only contain treatment and control with the attention check above and equal to 2, as stated in the research
 
-install.packages("effectsize")
-library(effectsize)
+install.packages("effsize")
+library(effsize)
 
-cohens_d(pennystudy2r1)
+pennys2r1a2cohen <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
+pennys2r1a2cohenc <- subset(pennys2r1a2cohen, condition %in% c("0"))
+pennys2r1a2cohent <- subset(pennys2r1a2cohen, condition %in% c("1"))
 
+
+
+
+cohen.d(pennys2r1a2cohenc$Fake, pennys2r1a2cohenc$Real, na.rm = TRUE)
+cohen.d(pennys2r1a2cohent$Fake, pennys2r1a2cohent$Real, na.rm = TRUE)
+
+
+#condition vs measurement
+
+pennys2r1a2cohenc <- subset(pennys2r1longa2, condition %in% c("0"))
+pennys2r1a2cohent <- subset(pennys2r1longa2, condition %in% c("1"))
+
+
+
+
+cohen.d(pennys2r1a2cohenc$condition, pennys2r1a2cohenc$measurement, na.rm = TRUE)
+cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE)
 
 ```
 
@@ -172,18 +193,21 @@ library(ggplot2)
 pennystudy2plot1 <- pennys2r1long %>%
   select (c(1, 2, 3, 4))
 
+
 #Find out the sum for each type of news in different condition
-p1 <- aggregate(measurement~condition+newstype, data = pennystudy2plot1, FUN = sum)
+
+p1 <- aggregate(measurement~condition+newstype, data = pennystudy2plot1, na.rm = TRUE, FUN = sum)
+p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/428, 4)*100)))
+
 
 ##double check for correctness
 sum(pennystudy2plot1$measurement,na.rm = TRUE)
 
 #since the obs is 1712, thus 1712/2 = 856 participants. So to get percentage of sharing intention each fake and real news need to divided by 856/2 = 428
-ggplot(p1, aes(x = condition, y = measurement/428, fill = newstype)) + 
+ggplot(p1, aes(x = condition, y = as.numeric(percent), fill = newstype)) + 
   geom_bar(stat = 'identity',position = 'dodge') + 
   geom_text(
-    aes(label = round(measurement/428, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
-    scale_y_continuous(labels = scales::percent)
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
 ```
 ### graph 2 attention check above and equal to 1
 
@@ -194,6 +218,12 @@ ggplot(p1, aes(x = condition, y = measurement/428, fill = newstype)) +
 pennystudy2plot2 <- pennys2r1longa1 %>%
   select (c(1, 2, 3, 4))
 
+#separating the sheet
+
+pennystudy2plot2c <- subset(pennystudy2plot2, condition %in% c("0"))
+pennystudy2plot2t <- subset(pennystudy2plot2, condition %in% c("1"))
+
+
 #Find out the sum for each type of news in different condition
 p2 <- aggregate(measurement~condition+newstype, data = pennystudy2plot2, FUN = sum)
 
@@ -201,10 +231,10 @@ p2 <- aggregate(measurement~condition+newstype, data = pennystudy2plot2, FUN = s
 sum(pennystudy2plot2$measurement,na.rm = TRUE)
 
 #since the obs is 1664, thus 1664/2 = 832 participants. So to get percentage of sharing intention each fake and real news need to divided by 832/2 = 416
-ggplot(p2, aes(x = condition, y = measurement/416, fill = newstype)) + 
+ggplot(p2, aes(x = condition, y = measurement/428, fill = newstype)) + 
   geom_bar(stat = 'identity',position = 'dodge') + 
   geom_text(
-    aes(label = round(measurement/416, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
+    aes(label = round(measurement/428, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
     scale_y_continuous(labels = scales::percent)
 ```
 
@@ -214,19 +244,62 @@ ggplot(p2, aes(x = condition, y = measurement/416, fill = newstype)) +
 pennystudy2plot3 <- pennys2r1longa2 %>%
   select (c(1, 2, 3, 4))
 
+
 #Find out the sum for each type of news in different condition
-p3 <- aggregate(measurement~condition+newstype, data = pennystudy2plot3, FUN = sum)
+
+p3 <- aggregate(measurement~condition+newstype, data = pennystudy2plot3, na.rm = TRUE, FUN = sum)
+p3 <- transform(p3, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/428, 4)*100)))
+
 
 ##double check for correctness
 sum(pennystudy2plot3$measurement,na.rm = TRUE)
 
-#since the obs is 1292 for attention > 2, thus 1292/2 = 646 participants. So to get percentage of sharing intention each fake and real news need to divided by 646/2 = 323
-ggplot(p3, aes(x = condition, y = measurement/323, fill = newstype)) + 
+#plot the graph under the proportion of overall observation (856)
+ggplot(p3, aes(x = condition, y = as.numeric(percent), fill = newstype)) + 
   geom_bar(stat = 'identity',position = 'dodge') + 
   geom_text(
-    aes(label = round(measurement/323, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
-    scale_y_continuous(labels = scales::percent)
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
 ```
+### graph 3 attention check above and equal to 2: mean
+```{r, message=FALSE}
+#condition 3: above and equal to 2
+pennystudy2plot3 <- pennys2r1longa2 %>%
+  select (c(1, 2, 3, 4))
+
+pennystudy2plot3c <- subset(pennystudy2plot3, condition %in% c("0"))
+pennystudy2plot3t <- subset(pennystudy2plot3, condition %in% c("1"))
+
+
+#Find out the sum and percentage for each type of news in each condition
+
+##control, percentage = 658/2 = 329
+p31 <- aggregate(measurement~condition+newstype, data = pennystudy2plot3c, na.rm = TRUE, FUN = sum)
+p31 <- transform(p31, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/329, 4)*100)))
+
+##treatment, percentage = 634/2 = 317
+p32 <- aggregate(measurement~condition+newstype, data = pennystudy2plot3t, na.rm = TRUE, FUN = sum)
+p32 <- transform(p32, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/317, 4)*100)))
+
+#merge two table together under same column name
+p3 <- rbind(p31,p32)
+
+##double check for correctness
+sum(pennystudy2plot3$measurement,na.rm = TRUE)
+
+#plot the graph
+ggplot(p3, aes(x = condition, y = as.numeric(percent), fill = newstype)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
+```
+
+
+
+
+
+
+
+
 
 ### graph 4 attention check equal to 3
 ```{r, message=FALSE}
