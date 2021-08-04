@@ -35,23 +35,121 @@ head(pennycook2)
 colnames(pennycook2)
 names(pennycook2)[1] <- "condition"
 
-#conclude a sheet with only the relevant information 
-#condition 1 = control; condition 2 = treatment 
+
+#remove a participants that did not answer or fail to record any questions
+
+pennycook2 <- pennycook2[!is.na(pennycook2$Fake),]
+
+
+#data description: condition 1 = control; condition 2 = treatment 
 
 #Choose with the column position 
 library("dplyr")
 pennystudy2r1 <- pennycook2 %>% 
-  select (c(1, 2, 3, 4, 57, 60, 250, 252, 284))
+  select (c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
 
 #re-code sharing intentions (fake/real) using the scale midpoint (1-3 = 0, 4-6 = 1)
+
+##Fake
 pennystudy2r1$Fake[pennystudy2r1$Fake > 0 & pennystudy2r1$Fake < 4] <- 0
 pennystudy2r1$Fake[pennystudy2r1$Fake > 3 & pennystudy2r1$Fake < 7] <- 1
 pennystudy2r1$Fake
 
+pennystudy2r1$Fake1_1[pennystudy2r1$Fake1_1 > 0 & pennystudy2r1$Fake1_1 < 4] <- 0
+pennystudy2r1$Fake1_1[pennystudy2r1$Fake1_1 > 3 & pennystudy2r1$Fake1_1 < 7] <- 1
+
+pennystudy2r1$Fake1_2[pennystudy2r1$Fake1_2 > 0 & pennystudy2r1$Fake1_2 < 4] <- 0
+pennystudy2r1$Fake1_2[pennystudy2r1$Fake1_2 > 3 & pennystudy2r1$Fake1_2 < 7] <- 1
+
+pennystudy2r1$Fake1_3[pennystudy2r1$Fake1_3 > 0 & pennystudy2r1$Fake1_3 < 4] <- 0
+pennystudy2r1$Fake1_3[pennystudy2r1$Fake1_3 > 3 & pennystudy2r1$Fake1_3 < 7] <- 1
+
+pennystudy2r1$Fake1_4[pennystudy2r1$Fake1_4 > 0 & pennystudy2r1$Fake1_4 < 4] <- 0
+pennystudy2r1$Fake1_4[pennystudy2r1$Fake1_4 > 3 & pennystudy2r1$Fake1_4 < 7] <- 1
+
+pennystudy2r1$Fake1_5[pennystudy2r1$Fake1_5 > 0 & pennystudy2r1$Fake1_5 < 4] <- 0
+pennystudy2r1$Fake1_5[pennystudy2r1$Fake1_5 > 3 & pennystudy2r1$Fake1_5 < 7] <- 1
+
+pennystudy2r1$Fake1_6[pennystudy2r1$Fake1_6 > 0 & pennystudy2r1$Fake1_6 < 4] <- 0
+pennystudy2r1$Fake1_6[pennystudy2r1$Fake1_6 > 3 & pennystudy2r1$Fake1_6 < 7] <- 1
+
+pennystudy2r1$Fake1_7[pennystudy2r1$Fake1_7 > 0 & pennystudy2r1$Fake1_7 < 4] <- 0
+pennystudy2r1$Fake1_7[pennystudy2r1$Fake1_7 > 3 & pennystudy2r1$Fake1_7 < 7] <- 1
+
+pennystudy2r1$Fake1_8[pennystudy2r1$Fake1_8 > 0 & pennystudy2r1$Fake1_8 < 4] <- 0
+pennystudy2r1$Fake1_8[pennystudy2r1$Fake1_8 > 3 & pennystudy2r1$Fake1_8 < 7] <- 1
+
+pennystudy2r1$Fake1_9[pennystudy2r1$Fake1_9 > 0 & pennystudy2r1$Fake1_9 < 4] <- 0
+pennystudy2r1$Fake1_9[pennystudy2r1$Fake1_9 > 3 & pennystudy2r1$Fake1_9 < 7] <- 1
+
+pennystudy2r1$Fake1_10[pennystudy2r1$Fake1_10 > 0 & pennystudy2r1$Fake1_10 < 4] <- 0
+pennystudy2r1$Fake1_10[pennystudy2r1$Fake1_10 > 3 & pennystudy2r1$Fake1_10 < 7] <- 1
+
+pennystudy2r1$Fake1_11[pennystudy2r1$Fake1_11 > 0 & pennystudy2r1$Fake1_11 < 4] <- 0
+pennystudy2r1$Fake1_11[pennystudy2r1$Fake1_11 > 3 & pennystudy2r1$Fake1_11 < 7] <- 1
+
+pennystudy2r1$Fake1_12[pennystudy2r1$Fake1_12 > 0 & pennystudy2r1$Fake1_12 < 4] <- 0
+pennystudy2r1$Fake1_12[pennystudy2r1$Fake1_12 > 3 & pennystudy2r1$Fake1_12 < 7] <- 1
+
+pennystudy2r1$Fake1_13[pennystudy2r1$Fake1_13 > 0 & pennystudy2r1$Fake1_13 < 4] <- 0
+pennystudy2r1$Fake1_13[pennystudy2r1$Fake1_13 > 3 & pennystudy2r1$Fake1_13 < 7] <- 1
+
+pennystudy2r1$Fake1_14[pennystudy2r1$Fake1_14 > 0 & pennystudy2r1$Fake1_14 < 4] <- 0
+pennystudy2r1$Fake1_14[pennystudy2r1$Fake1_14 > 3 & pennystudy2r1$Fake1_14 < 7] <- 1
+
+pennystudy2r1$Fake1_15[pennystudy2r1$Fake1_15 > 0 & pennystudy2r1$Fake1_15 < 4] <- 0
+pennystudy2r1$Fake1_15[pennystudy2r1$Fake1_15 > 3 & pennystudy2r1$Fake1_15 < 7] <- 1
+
+
+##Real
 pennystudy2r1$Real[pennystudy2r1$Real > 0 & pennystudy2r1$Real < 4] <- 0
 pennystudy2r1$Real[pennystudy2r1$Real > 3 & pennystudy2r1$Real < 7] <- 1
 pennystudy2r1$Real
 
+pennystudy2r1$Real1_1[pennystudy2r1$Real1_1 > 0 & pennystudy2r1$Real1_1 < 4] <- 0
+pennystudy2r1$Real1_1[pennystudy2r1$Real1_1 > 3 & pennystudy2r1$Real1_1 < 7] <- 1
+
+pennystudy2r1$Real1_2[pennystudy2r1$Real1_2 > 0 & pennystudy2r1$Real1_2 < 4] <- 0
+pennystudy2r1$Real1_2[pennystudy2r1$Real1_2 > 3 & pennystudy2r1$Real1_2 < 7] <- 1
+
+pennystudy2r1$Real1_3[pennystudy2r1$Real1_3 > 0 & pennystudy2r1$Real1_3 < 4] <- 0
+pennystudy2r1$Real1_3[pennystudy2r1$Real1_3 > 3 & pennystudy2r1$Real1_3 < 7] <- 1
+
+pennystudy2r1$Real1_4[pennystudy2r1$Real1_4 > 0 & pennystudy2r1$Real1_4 < 4] <- 0
+pennystudy2r1$Real1_4[pennystudy2r1$Real1_4 > 3 & pennystudy2r1$Real1_4 < 7] <- 1
+
+pennystudy2r1$Real1_5[pennystudy2r1$Real1_5 > 0 & pennystudy2r1$Real1_5 < 4] <- 0
+pennystudy2r1$Real1_5[pennystudy2r1$Real1_5 > 3 & pennystudy2r1$Real1_5 < 7] <- 1
+
+pennystudy2r1$Real1_6[pennystudy2r1$Real1_6 > 0 & pennystudy2r1$Real1_6 < 4] <- 0
+pennystudy2r1$Real1_6[pennystudy2r1$Real1_6 > 3 & pennystudy2r1$Real1_6 < 7] <- 1
+
+pennystudy2r1$Real1_7[pennystudy2r1$Real1_7 > 0 & pennystudy2r1$Real1_7 < 4] <- 0
+pennystudy2r1$Real1_7[pennystudy2r1$Real1_7 > 3 & pennystudy2r1$Real1_7 < 7] <- 1
+
+pennystudy2r1$Real1_8[pennystudy2r1$Real1_8 > 0 & pennystudy2r1$Real1_8 < 4] <- 0
+pennystudy2r1$Real1_8[pennystudy2r1$Real1_8 > 3 & pennystudy2r1$Real1_8 < 7] <- 1
+
+pennystudy2r1$Real1_9[pennystudy2r1$Real1_9 > 0 & pennystudy2r1$Real1_9 < 4] <- 0
+pennystudy2r1$Real1_9[pennystudy2r1$Real1_9 > 3 & pennystudy2r1$Real1_9 < 7] <- 1
+
+pennystudy2r1$Real1_10[pennystudy2r1$Real1_10 > 0 & pennystudy2r1$Real1_10 < 4] <- 0
+pennystudy2r1$Real1_10[pennystudy2r1$Real1_10 > 3 & pennystudy2r1$Real1_10 < 7] <- 1
+
+pennystudy2r1$Real1_11[pennystudy2r1$Real1_11 > 0 & pennystudy2r1$Real1_11 < 4] <- 0
+pennystudy2r1$Real1_11[pennystudy2r1$Real1_11 > 3 & pennystudy2r1$Real1_11 < 7] <- 1
+
+pennystudy2r1$Real1_12[pennystudy2r1$Real1_12 > 0 & pennystudy2r1$Real1_12 < 4] <- 0
+pennystudy2r1$Real1_12[pennystudy2r1$Real1_12 > 3 & pennystudy2r1$Real1_12 < 7] <- 1
+
+pennystudy2r1$Real1_13[pennystudy2r1$Real1_13 > 0 & pennystudy2r1$Real1_13 < 4] <- 0
+pennystudy2r1$Real1_13[pennystudy2r1$Real1_13 > 3 & pennystudy2r1$Real1_13 < 7] <- 1
+
+pennystudy2r1$Real1_14[pennystudy2r1$Real1_14 > 0 & pennystudy2r1$Real1_14 < 4] <- 0
+pennystudy2r1$Real1_14[pennystudy2r1$Real1_14 > 3 & pennystudy2r1$Real1_14 < 7] <- 1
+
+pennystudy2r1$Real1_15[pennystudy2r1$Real1_15 > 0 & pennystudy2r1$Real1_15 < 4] <- 0
+pennystudy2r1$Real1_15[pennystudy2r1$Real1_15 > 3 & pennystudy2r1$Real1_15 < 7] <- 1
 
 #create veracity column (Real - Fake)
 pennystudy2r1['veracity']=pennystudy2r1['Real'] - pennystudy2r1['Fake']
@@ -89,7 +187,9 @@ pennystudy2r1['dummycheck']=pennystudy2r1['screen1'] + pennystudy2r1['screen2'] 
 
 #like the researcher did, change data frame from wide to long
 ##first drop unnecessary column
-pennys2r1long <- subset(pennystudy2r1, select = c(1,2,3,4,10,14))
+colnames(pennystudy2r1)
+
+pennys2r1long <- subset(pennystudy2r1, select = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,40,44))
 
 ##Add ID column
 pennys2r1long <- tibble::rowid_to_column(pennys2r1long, "ID")
@@ -99,7 +199,7 @@ library(tidyr)
 
 keycol <- "newstype"
 valuecol <- "measurement"
-gathercols <- c("Fake","Real")
+gathercols <- c("Fake1_1","Fake1_2","Fake1_3","Fake1_4","Fake1_5","Fake1_6","Fake1_7","Fake1_8","Fake1_9","Fake1_10","Fake1_11","Fake1_12","Fake1_13","Fake1_14","Fake1_15","Real1_1","Real1_2","Real1_3","Real1_4","Real1_5","Real1_6","Real1_7","Real1_8","Real1_9","Real1_10","Real1_11","Real1_12","Real1_13","Real1_14","Real1_15")
 
 pennys2r1long <- gather_(pennys2r1long, keycol, valuecol, gathercols)
 
@@ -110,19 +210,42 @@ merge(pennystudy2r1, pennys2r1long, by.x='condition', by.y='ID')
 ##organize data by ID, then reorder the column
 pennys2r1long <- pennys2r1long[order(pennys2r1long$ID),]
 
-pennys2r1long <- pennys2r1long[, c(1, 2, 6, 7, 4, 5, 3)]
+pennys2r1long <- pennys2r1long[, c(1, 2, 8, 9, 7, 4, 3, 6, 5)]
+
+##rename real and fake to avereal and avefake, change dummycheck to attentioncheck to make it clear
+
+names(pennys2r1long)[6] <- "Real_ave"
+names(pennys2r1long)[7] <- "Fake_ave"
+names(pennys2r1long)[5] <- "attentioncheck"
+
+##create a headline veracity column, fake news items code as 0, real news items code as 1
+
+pennys2r1long <- pennys2r1long %>%
+  mutate(headlineveracity = case_when(
+    startsWith(newstype, "R") ~ "1",
+    startsWith(newstype, "F") ~ "0"
+    ))
+
+##realise that original researcher exclude the observation with answer contains na, thus the obs needs to minus 23 to match original obs 25,627
+
+pennys2r1long_nona <- pennys2r1long[!is.na(pennys2r1long$measurement),]
 
 ##separating the data based on number of successful attention check
 
 ### attention check above and equal to 1
-pennys2r1longa1 <- subset(pennys2r1long, dummycheck %in% c("1","2","3"))
+pennys2r1longa1 <- subset(pennys2r1long, attentioncheck %in% c("1","2","3"))
 
 ### attention check above and equal to 2
-pennys2r1longa2 <- subset(pennys2r1long, dummycheck %in% c("2","3"))
+pennys2r1longa2 <- subset(pennys2r1long, attentioncheck %in% c("2","3"))
 
 ### attention check equal to 3
-pennys2r1longa3 <- subset(pennys2r1long, dummycheck %in% c("3"))
+pennys2r1longa3 <- subset(pennys2r1long, attentioncheck %in% c("3"))
 
+
+###find out the number of participants for each attention check
+attention1 <- subset(pennystudy2r1, dummycheck %in% c("1","2","3"))
+attention2 <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
+attention3 <- subset(pennystudy2r1, dummycheck %in% c("3"))
 ```
 
 
@@ -137,7 +260,7 @@ library(stargazer)
 library(sandwich)
 
 
-lm1 <- lm(veracity ~ newstype + newstype*condition, data = pennys2r1longa2)
+lm1 <- lm(measurement ~ headlineveracity + headlineveracity*condition, data = pennys2r1long_nona)
 summary(lm1)
 
 stargazer(lm1, type='text')
@@ -190,21 +313,17 @@ library(ggplot2)
 
 #condition 1: all
 
-pennystudy2plot1 <- pennys2r1long %>%
-  select (c(1, 2, 3, 4))
-
-
 #Find out the sum for each type of news in different condition
 
-p1 <- aggregate(measurement~condition+newstype, data = pennystudy2plot1, na.rm = TRUE, FUN = sum)
-p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/428, 4)*100)))
+p1 <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, na.rm = TRUE, FUN = sum)
 
 
-##double check for correctness
-sum(pennystudy2plot1$measurement,na.rm = TRUE)
+#since the obs is 25,627, thus for each news in each condition, it observed 25,627/4 = 6406.75
+p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/6406.75, 4)*100)))
 
-#since the obs is 1712, thus 1712/2 = 856 participants. So to get percentage of sharing intention each fake and real news need to divided by 856/2 = 428
-ggplot(p1, aes(x = condition, y = as.numeric(percent), fill = newstype)) + 
+#plot the graph
+
+ggplot(p1, aes(x = condition, y = as.numeric(percent), fill = headlineveracity)) + 
   geom_bar(stat = 'identity',position = 'dodge') + 
   geom_text(
     aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
