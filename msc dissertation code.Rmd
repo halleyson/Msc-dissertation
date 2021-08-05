@@ -19,7 +19,6 @@ frontsize: 12pt
 
 library(readr)
 
-pennycook1 <- read_csv("Pennycook et al._Study 1.csv")
 pennycook2 <- read_csv("Pennycook et al._Study 2.csv")
 # Quick check
 head(pennycook2)
@@ -242,7 +241,7 @@ pennys2r1longa2 <- subset(pennys2r1long, attentioncheck %in% c("2","3"))
 pennys2r1longa3 <- subset(pennys2r1long, attentioncheck %in% c("3"))
 
 
-###find out the number of participants for each attention check
+###find out the number of participants (obs) for each attention check level
 attention1 <- subset(pennystudy2r1, dummycheck %in% c("1","2","3"))
 attention2 <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
 attention3 <- subset(pennystudy2r1, dummycheck %in% c("3"))
@@ -298,6 +297,75 @@ pennys2r1a2cohent <- subset(pennys2r1longa2, condition %in% c("1"))
 cohen.d(pennys2r1a2cohenc$condition, pennys2r1a2cohenc$measurement, na.rm = TRUE)
 cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE)
 
+
+## use glm, stepwise approach to see how each factor explaining the sharing intention. The family for the model is binomial since the dependent variable is dichotomous.
+glm0 <- glm(measurement ~ 1, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm1 <- glm(measurement ~ condition, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm2 <- glm(measurement ~ condition + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm3 <- glm(measurement ~ condition + attentioncheck + headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm4 <- glm(measurement ~ condition + attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+
+anova(glm0,glm1,glm2,glm3,glm4,test='LR')
+
+##looking at summary glm4, it is cleat that condition does not have a significant effect on measurement
+summary(glm6)
+
+glm5 <- glm(measurement ~ attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+glm6 <- glm(measurement ~ headlineveracity + attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+summary(glm7)
+
+
+##maybe a mixed effect models?
+#create a new column that recode item number from fake to real to 1-30, with 1-15 indicate fake, 16-30 indicate real
+
+pennys2r1long <- within(pennys2r1long,{
+  item_id <- NA
+  item_id[newstype == "Fake1_1"] <- 1
+  item_id[newstype == "Fake1_2"] <- 2
+  item_id[newstype == "Fake1_3"] <- 3
+  item_id[newstype == "Fake1_4"] <- 4
+  item_id[newstype == "Fake1_5"] <- 5
+  item_id[newstype == "Fake1_6"] <- 6
+  item_id[newstype == "Fake1_7"] <- 7
+  item_id[newstype == "Fake1_8"] <- 8
+  item_id[newstype == "Fake1_9"] <- 9
+  item_id[newstype == "Fake1_10"] <- 10
+  item_id[newstype == "Fake1_11"] <- 11
+  item_id[newstype == "Fake1_12"] <- 12
+  item_id[newstype == "Fake1_13"] <- 13
+  item_id[newstype == "Fake1_14"] <- 14
+  item_id[newstype == "Fake1_15"] <- 15
+  item_id[newstype == "Real1_1"] <- 16
+  item_id[newstype == "Real1_2"] <- 17
+  item_id[newstype == "Real1_3"] <- 18
+  item_id[newstype == "Real1_4"] <- 19
+  item_id[newstype == "Real1_5"] <- 20
+  item_id[newstype == "Real1_6"] <- 21
+  item_id[newstype == "Real1_7"] <- 22
+  item_id[newstype == "Real1_8"] <- 23
+  item_id[newstype == "Real1_9"] <- 24
+  item_id[newstype == "Real1_10"] <- 25
+  item_id[newstype == "Real1_11"] <- 26
+  item_id[newstype == "Real1_12"] <- 27
+  item_id[newstype == "Real1_13"] <- 28
+  item_id[newstype == "Real1_14"] <- 29
+  item_id[newstype == "Real1_15"] <- 30
+})
+
+library(lme4) 
+library(lmerTest)
+
+#model 1, item_id indicates repeated measurements for each item
+mult1 <- lmer (measurement ~ condition + attentioncheck + headlineveracity + (1|item_id),
+             data = pennys2r1long)
+summary(mult1)
+
 ```
 
 
@@ -305,7 +373,7 @@ cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE
 ### reproduction of figure 2 without considering attention check
 
 ### graph 1: including all
-```{r}
+```{r, message=FALSE}
 
 library(ggplot2)
 
