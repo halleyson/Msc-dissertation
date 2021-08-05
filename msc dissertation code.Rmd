@@ -297,7 +297,12 @@ pennys2r1a2cohent <- subset(pennys2r1longa2, condition %in% c("1"))
 cohen.d(pennys2r1a2cohenc$condition, pennys2r1a2cohenc$measurement, na.rm = TRUE)
 cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE)
 
+```
 
+
+
+##Try something new, see if it makes the results better
+```{r, message=FALSE}
 ## use glm, stepwise approach to see how each factor explaining the sharing intention. The family for the model is binomial since the dependent variable is dichotomous.
 glm0 <- glm(measurement ~ 1, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
