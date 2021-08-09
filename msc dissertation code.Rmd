@@ -242,10 +242,107 @@ pennys2r1longa3 <- subset(pennys2r1long, attentioncheck %in% c("3"))
 
 
 ###find out the number of participants (obs) for each attention check level
-attention1 <- subset(pennystudy2r1, dummycheck %in% c("1","2","3"))
-attention2 <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
-attention3 <- subset(pennystudy2r1, dummycheck %in% c("3"))
+attention1 <- subset(pennys2r1long_nona, attentioncheck %in% c("1","2","3"))
+attention2 <- subset(pennys2r1long_nona, attentioncheck %in% c("2","3"))
+attention3 <- subset(pennys2r1long_nona, attentioncheck %in% c("3"))
+
+
 ```
+
+
+
+## relase I should not dichotomise the scale as it loses info and reduces the power.
+```{r, message=FALSE}
+#recreate a data frame that does not rescale the data to either 0,1 but from 0 to 1,so divided each value by rating = (rating - 1)/5
+
+pennystudy2r1nodi <- pennycook2 %>% 
+  select (c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
+
+
+#successful screen1 test (result = 2)
+pennystudy2r1nodi['screen1']=pennystudy2r1nodi['screen1_4'] + pennystudy2r1nodi['screen1_7']
+
+#successful screen2 test (result = 2)
+pennystudy2r1nodi['screen2']=pennystudy2r1nodi['screen2_3'] + pennystudy2r1nodi['screen2_5']
+
+#successful screen3 test (result = 3)
+pennystudy2r1nodi['screen3'] = na_if(pennystudy2r1nodi$screen3_2,1)
+pennystudy2r1nodi['screen3'] = na_if(pennystudy2r1nodi$screen3,2)
+pennystudy2r1nodi['screen3'] = na_if(pennystudy2r1nodi$screen3,4)
+pennystudy2r1nodi['screen3'] = na_if(pennystudy2r1nodi$screen3,5)
+#check if screen 3 successful
+mean(pennystudy2r1nodi$screen3, na.rm = TRUE)
+
+#re-code screen test: replace 2 and 3 to 1
+pennystudy2r1nodi["screen1"][pennystudy2r1nodi["screen1"] == 2] <- 1
+pennystudy2r1nodi["screen2"][pennystudy2r1nodi["screen2"] == 2] <- 1
+pennystudy2r1nodi["screen3"][pennystudy2r1nodi["screen3"] == 3] <- 1
+
+#re-code condition control = 0 treatment = 1
+pennystudy2r1nodi["condition"][pennystudy2r1nodi["condition"] == 1] <- 0
+pennystudy2r1nodi["condition"][pennystudy2r1nodi["condition"] == 2] <- 1
+
+#replace NA to 0 in screen 1,2,3
+
+pennystudy2r1nodi[c("screen1","screen2","screen3")][is.na(pennystudy2r1nodi[c("screen1","screen2","screen3")])] <- 0
+
+#create dummy column, add screen 1,2,3 together. Screen = 3 indicate success in all attention check
+pennystudy2r1nodi['dummycheck']=pennystudy2r1nodi['screen1'] + pennystudy2r1nodi['screen2'] + pennystudy2r1nodi['screen3']
+
+
+#like the researcher did, change data frame from wide to long
+##first drop unnecessary column
+colnames(pennystudy2r1nodi)
+
+pennys2r1longnodi <- subset(pennystudy2r1nodi, select = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,43))
+
+##Add ID column
+pennys2r1longnodi <- tibble::rowid_to_column(pennys2r1longnodi, "ID")
+
+## change from wide to long
+library(tidyr)
+
+keycol <- "newstype"
+valuecol <- "measurement"
+gathercols <- c("Fake1_1","Fake1_2","Fake1_3","Fake1_4","Fake1_5","Fake1_6","Fake1_7","Fake1_8","Fake1_9","Fake1_10","Fake1_11","Fake1_12","Fake1_13","Fake1_14","Fake1_15","Real1_1","Real1_2","Real1_3","Real1_4","Real1_5","Real1_6","Real1_7","Real1_8","Real1_9","Real1_10","Real1_11","Real1_12","Real1_13","Real1_14","Real1_15")
+
+pennys2r1longnodi <- gather_(pennys2r1longnodi, keycol, valuecol, gathercols)
+
+##no idea why it doesn't show groups (control vs treatment) so I merge original condition to the new one
+
+merge(pennystudy2r1nodi, pennys2r1longnodi, by.x='condition', by.y='ID')
+
+##organize data by ID, then reorder the column
+pennys2r1longnodi <- pennys2r1longnodi[order(pennys2r1longnodi$ID),]
+
+pennys2r1longnodi <- pennys2r1longnodi[, c(1, 2, 7, 8, 6, 5, 4, 3)]
+
+##change dummycheck to attentioncheck to make it clear
+
+names(pennys2r1longnodi)[5] <- "attentioncheck"
+
+##create a headline veracity column, fake news items code as 0, real news items code as 1
+
+pennys2r1longnodi <- pennys2r1longnodi %>%
+  mutate(headlineveracity = case_when(
+    startsWith(newstype, "R") ~ "1",
+    startsWith(newstype, "F") ~ "0"
+    ))
+
+##recode the measurement column
+
+pennys2r1longnodi <- transform(pennys2r1longnodi, rescale = ave(measurement, condition, FUN = function(x) paste0((x-1)/5)))
+
+##realise that original researcher exclude the observation with answer contains na, thus the obs needs to minus 23 to match original obs 25,627
+
+pennys2r1longnodi_nona <- pennys2r1longnodi[!is.na(pennys2r1longnodi$measurement),]
+
+attention1nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("1","2","3"))
+attention2nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("2","3"))
+attention3nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("3"))
+
+```
+
 
 
 ## reproduction of results (interaction between headline veracity and treatment)
@@ -259,7 +356,7 @@ library(stargazer)
 library(sandwich)
 
 
-lm1 <- lm(measurement ~ headlineveracity + headlineveracity*condition, data = pennys2r1long_nona)
+lm1 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = pennys2r1longnodi_nona)
 summary(lm1)
 
 stargazer(lm1, type='text')
@@ -275,27 +372,40 @@ scale(pennystudy2r1$Discern)
 install.packages("effsize")
 library(effsize)
 
-pennys2r1a2cohen <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
-pennys2r1a2cohenc <- subset(pennys2r1a2cohen, condition %in% c("0"))
-pennys2r1a2cohent <- subset(pennys2r1a2cohen, condition %in% c("1"))
+##change headlineveracity and rescale to numeric
+pennys2r1longnodi_nona <- transform(pennys2r1longnodi_nona, 
+                   headlineveracity = as.numeric(headlineveracity),
+                   rescale = as.numeric(rescale))
+
+sapply(pennys2r1longnodi_nona,mode)
 
 
-
-
-cohen.d(pennys2r1a2cohenc$Fake, pennys2r1a2cohenc$Real, na.rm = TRUE)
-cohen.d(pennys2r1a2cohent$Fake, pennys2r1a2cohent$Real, na.rm = TRUE)
-
+pennys2nodicohenc <- subset(pennys2r1longnodi_nona, condition %in% c("0"))
+pennys2nodicohent <- subset(pennys2r1longnodi_nona, condition %in% c("1"))
 
 #condition vs measurement
+cohen.d(pennys2nodicohent$Real,pennys2nodicohent$Fake, na.rm = TRUE)
+cohen.d(pennys2nodicohenc$Real,pennys2nodicohenc$Fake, na.rm = TRUE)
 
-pennys2r1a2cohenc <- subset(pennys2r1longa2, condition %in% c("0"))
-pennys2r1a2cohent <- subset(pennys2r1longa2, condition %in% c("1"))
+#attention1nodi
+lm2 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention1nodi)
+summary(lm2)
+
+stargazer(lm2, type='text')
 
 
+#attention2nodi
+lm3 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention2nodi)
+summary(lm3)
+
+stargazer(lm3, type='text')
 
 
-cohen.d(pennys2r1a2cohenc$condition, pennys2r1a2cohenc$measurement, na.rm = TRUE)
-cohen.d(pennys2r1a2cohent$condition, pennys2r1a2cohent$measurement, na.rm = TRUE)
+#attention3nodi
+lm4 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention3nodi)
+summary(lm4)
+
+stargazer(lm4, type='text')
 
 ```
 
@@ -308,26 +418,49 @@ glm0 <- glm(measurement ~ 1, data = pennys2r1long_nona, family = binomial(link =
 
 glm1 <- glm(measurement ~ condition, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
-glm2 <- glm(measurement ~ condition + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
+glm2 <- glm(measurement ~ condition + headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
-glm3 <- glm(measurement ~ condition + attentioncheck + headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+glm3 <- glm(measurement ~ condition + condition*headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
-glm4 <- glm(measurement ~ condition + attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+glm4 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
 
-anova(glm0,glm1,glm2,glm3,glm4,test='LR')
+anova(glm0,glm1,glm2,glm3,test='LR')
 
 ##looking at summary glm4, it is cleat that condition does not have a significant effect on measurement
-summary(glm6)
-
-glm5 <- glm(measurement ~ attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
-glm6 <- glm(measurement ~ headlineveracity + attentioncheck +condition* headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-summary(glm7)
+summary(glm4)
 
 
+exp(cbind(OR = coef(glm3), confint(glm3)))
+
+
+glm41 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention1, family = binomial(link = "logit"))
+glm411 <- glm(measurement ~ condition + condition*headlineveracity, data = attention1, family = binomial(link = "logit"))
+
+summary(glm41)
+summary(glm411)
+
+
+glm42 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
+glm421 <- glm(measurement ~ condition + condition*headlineveracity, data = attention2, family = binomial(link = "logit"))
+
+summary(glm42)
+summary(glm421)
+
+
+glm43 <- glm(measurement ~ condition + headlineveracity, data = attention3, family = binomial(link = "logit"))
+glm431 <- glm(measurement ~ condition + condition*headlineveracity, data = attention3, family = binomial(link = "logit"))
+
+summary(glm43)
+summary(glm431)
+
+
+
+
+#Additional
 ##maybe a mixed effect models?
-#create a new column that recode item number from fake to real to 1-30, with 1-15 indicate fake, 16-30 indicate real
+
+###create a new column that recode item number from fake and real to 1-30, with 1-15 indicate each fake items, 16-30 indicate each real items
 
 pennys2r1long <- within(pennys2r1long,{
   item_id <- NA
@@ -363,11 +496,12 @@ pennys2r1long <- within(pennys2r1long,{
   item_id[newstype == "Real1_15"] <- 30
 })
 
+
 library(lme4) 
 library(lmerTest)
 
 #model 1, item_id indicates repeated measurements for each item
-mult1 <- lmer (measurement ~ condition + attentioncheck + headlineveracity + (1|item_id),
+mult1 <- lmer (measurement ~ condition + condition*headlineveracity + (1|item_id),
              data = pennys2r1long)
 summary(mult1)
 
@@ -377,14 +511,10 @@ summary(mult1)
 
 ### reproduction of figure 2 without considering attention check
 
-### graph 1: including all
+### graph: including all
 ```{r, message=FALSE}
 
 library(ggplot2)
-
-#Since the plot not specify which condition they use, then I need to plot all 4 graph in different condition
-
-#condition 1: all
 
 #Find out the sum for each type of news in different condition
 
@@ -401,6 +531,29 @@ ggplot(p1, aes(x = condition, y = as.numeric(percent), fill = headlineveracity))
   geom_text(
     aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Test (irrelevant)
+
+
+
+
 ### graph 2 attention check above and equal to 1
 
 ```{r, message=FALSE}
@@ -484,13 +637,6 @@ ggplot(p3, aes(x = condition, y = as.numeric(percent), fill = newstype)) +
   geom_text(
     aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
 ```
-
-
-
-
-
-
-
 
 
 ### graph 4 attention check equal to 3
