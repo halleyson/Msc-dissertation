@@ -172,10 +172,6 @@ pennystudy2r1["screen1"][pennystudy2r1["screen1"] == 2] <- 1
 pennystudy2r1["screen2"][pennystudy2r1["screen2"] == 2] <- 1
 pennystudy2r1["screen3"][pennystudy2r1["screen3"] == 3] <- 1
 
-#re-code condition control = 0 treatment = 1
-pennystudy2r1["condition"][pennystudy2r1["condition"] == 1] <- 0
-pennystudy2r1["condition"][pennystudy2r1["condition"] == 2] <- 1
-
 #replace NA to 0 in screen 1,2,3
 
 pennystudy2r1[c("screen1","screen2","screen3")][is.na(pennystudy2r1[c("screen1","screen2","screen3")])] <- 0
@@ -183,6 +179,10 @@ pennystudy2r1[c("screen1","screen2","screen3")][is.na(pennystudy2r1[c("screen1",
 #create dummy column, add screen 1,2,3 together. Screen = 3 indicate success in all attention check
 pennystudy2r1['dummycheck']=pennystudy2r1['screen1'] + pennystudy2r1['screen2'] + pennystudy2r1['screen3']
 
+
+#re-code condition control = 0 treatment = 1
+pennystudy2r1["condition"][pennystudy2r1["condition"] == 1] <- 0
+pennystudy2r1["condition"][pennystudy2r1["condition"] == 2] <- 1
 
 #like the researcher did, change data frame from wide to long
 ##first drop unnecessary column
@@ -202,7 +202,7 @@ gathercols <- c("Fake1_1","Fake1_2","Fake1_3","Fake1_4","Fake1_5","Fake1_6","Fak
 
 pennys2r1long <- gather_(pennys2r1long, keycol, valuecol, gathercols)
 
-##no idea why it doesn't show groups (control vs treatment) so I merge original condition to the new one
+##no idea why it doesn't show condition column (control vs treatment) so I merge original condition to the new one
 
 merge(pennystudy2r1, pennys2r1long, by.x='condition', by.y='ID')
 
@@ -308,7 +308,7 @@ gathercols <- c("Fake1_1","Fake1_2","Fake1_3","Fake1_4","Fake1_5","Fake1_6","Fak
 
 pennys2r1longnodi <- gather_(pennys2r1longnodi, keycol, valuecol, gathercols)
 
-##no idea why it doesn't show groups (control vs treatment) so I merge original condition to the new one
+##no idea why it doesn't show conditions (control vs treatment) so I merge original condition to the new one
 
 merge(pennystudy2r1nodi, pennys2r1longnodi, by.x='condition', by.y='ID')
 
@@ -442,7 +442,7 @@ summary(glm411)
 
 
 glm42 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
-glm421 <- glm(measurement ~ condition + condition*headlineveracity, data = attention2, family = binomial(link = "logit"))
+glm421 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
 
 summary(glm42)
 summary(glm421)
@@ -526,10 +526,15 @@ p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) past
 
 #plot the graph
 
-ggplot(p1, aes(x = condition, y = as.numeric(percent), fill = headlineveracity)) + 
+ggplot(p1, aes(x = factor(condition), y = as.numeric(percent), fill = headlineveracity)) + 
   geom_bar(stat = 'identity',position = 'dodge') + 
   geom_text(
-    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9)) +
+  xlab("Condition") + 
+  ylab("Likelihood of Sharing (%)") +
+  scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
+  scale_fill_discrete(name = "Headline Veracity", labels = c("Fake", "Real"))
+
 ```
 
 
