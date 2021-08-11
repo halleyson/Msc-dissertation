@@ -333,6 +333,44 @@ pennys2r1longnodi <- pennys2r1longnodi %>%
 
 pennys2r1longnodi <- transform(pennys2r1longnodi, rescale = ave(measurement, condition, FUN = function(x) paste0((x-1)/5)))
 
+
+##create a new column that recode item number from fake and real to 1-30, with 1-15 indicate each fake items, 16-30 indicate each real items
+
+pennys2r1longnodi_nona <- within(pennys2r1longnodi_nona,{
+  item_id <- NA
+  item_id[newstype == "Fake1_1"] <- 1
+  item_id[newstype == "Fake1_2"] <- 2
+  item_id[newstype == "Fake1_3"] <- 3
+  item_id[newstype == "Fake1_4"] <- 4
+  item_id[newstype == "Fake1_5"] <- 5
+  item_id[newstype == "Fake1_6"] <- 6
+  item_id[newstype == "Fake1_7"] <- 7
+  item_id[newstype == "Fake1_8"] <- 8
+  item_id[newstype == "Fake1_9"] <- 9
+  item_id[newstype == "Fake1_10"] <- 10
+  item_id[newstype == "Fake1_11"] <- 11
+  item_id[newstype == "Fake1_12"] <- 12
+  item_id[newstype == "Fake1_13"] <- 13
+  item_id[newstype == "Fake1_14"] <- 14
+  item_id[newstype == "Fake1_15"] <- 15
+  item_id[newstype == "Real1_1"] <- 16
+  item_id[newstype == "Real1_2"] <- 17
+  item_id[newstype == "Real1_3"] <- 18
+  item_id[newstype == "Real1_4"] <- 19
+  item_id[newstype == "Real1_5"] <- 20
+  item_id[newstype == "Real1_6"] <- 21
+  item_id[newstype == "Real1_7"] <- 22
+  item_id[newstype == "Real1_8"] <- 23
+  item_id[newstype == "Real1_9"] <- 24
+  item_id[newstype == "Real1_10"] <- 25
+  item_id[newstype == "Real1_11"] <- 26
+  item_id[newstype == "Real1_12"] <- 27
+  item_id[newstype == "Real1_13"] <- 28
+  item_id[newstype == "Real1_14"] <- 29
+  item_id[newstype == "Real1_15"] <- 30
+})
+
+
 ##realise that original researcher exclude the observation with answer contains na, thus the obs needs to minus 23 to match original obs 25,627
 
 pennys2r1longnodi_nona <- pennys2r1longnodi[!is.na(pennys2r1longnodi$measurement),]
@@ -348,9 +386,6 @@ attention3nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("3"))
 ## reproduction of results (interaction between headline veracity and treatment)
 ### without considering attention check
 ```{r, message=FALSE}
-install.packages("sandwich") 
-install.packages("stargazer")
-install.packages("lmtest")
 library(lmtest)
 library(stargazer) 
 library(sandwich)
@@ -361,10 +396,9 @@ summary(lm1)
 
 stargazer(lm1, type='text')
 
-coeftest(lm1, vcovHC)
+coeftest(lm1, vcov = vcovCL, cluster = ~ ID + item_id)
 
-#z scored
-scale(pennystudy2r1$Discern)
+
 
 #calculate the effect size cohen's d
 ##since they need to compare true vs false headline in different condition, thus, create a new data frame that only contain treatment and control with the attention check above and equal to 2, as stated in the research
@@ -387,25 +421,34 @@ pennys2nodicohent <- subset(pennys2r1longnodi_nona, condition %in% c("1"))
 cohen.d(pennys2nodicohent$Real,pennys2nodicohent$Fake, na.rm = TRUE)
 cohen.d(pennys2nodicohenc$Real,pennys2nodicohenc$Fake, na.rm = TRUE)
 
-#attention1nodi
+
+#Robustness for different levels of attentiveness
+##attention above 1
 lm2 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention1nodi)
 summary(lm2)
 
 stargazer(lm2, type='text')
 
+coeftest(lm2, vcov = vcovCL, cluster = ~ ID + item_id)
 
-#attention2nodi
+
+
+##attention above 2
 lm3 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention2nodi)
 summary(lm3)
 
 stargazer(lm3, type='text')
 
+coeftest(lm3, vcov = vcovCL, cluster = ~ ID + item_id)
 
-#attention3nodi
+##attention all 3
 lm4 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention3nodi)
 summary(lm4)
 
 stargazer(lm4, type='text')
+
+coeftest(lm4, vcov = vcovCL, cluster = ~ ID + item_id)
+
 
 ```
 
@@ -425,15 +468,18 @@ glm3 <- glm(measurement ~ condition + condition*headlineveracity, data = pennys2
 glm4 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
 
-anova(glm0,glm1,glm2,glm3,test='LR')
+glm5 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+anova(glm0,glm1,glm2,glm3,glm4,test='LR')
 
 ##looking at summary glm4, it is cleat that condition does not have a significant effect on measurement
-summary(glm4)
+summary(glm5)
 
+###odds ratios and 95% CI
 
 exp(cbind(OR = coef(glm3), confint(glm3)))
 
-
+## Different attention check group
 glm41 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention1, family = binomial(link = "logit"))
 glm411 <- glm(measurement ~ condition + condition*headlineveracity, data = attention1, family = binomial(link = "logit"))
 
@@ -454,7 +500,96 @@ glm431 <- glm(measurement ~ condition + condition*headlineveracity, data = atten
 summary(glm43)
 summary(glm431)
 
+#Ordinal logistic regression
 
+install.packages("ordinal")
+install.packages("ggeffects")
+
+library(ordinal)
+library(ggeffects)
+
+ordinaldata <- pennys2r1longnodi_nona
+
+str(ordinaldata)
+ordinaldata$measurement <- as.factor(ordinaldata$measurement)
+
+
+ordinal <- clm(measurement ~ condition + condition*headlineveracity, data = ordinaldata, link = "logit")
+
+summary(ordinal)
+
+exp(coef(ordinal))
+
+ggpredict_ordinal <- ggpredict(ordinal, terms = c("condition","headlineveracity"))
+ggpredict_ordinaldata = data.frame(ggpredict_ordinal)
+
+ggpredict_ordinal
+str(ggpredict_ordinaldata)
+
+
+ggpredict_ordinaldata$x = factor(ggpredict_ordinaldata$x)
+levels(ggpredict_ordinaldata$x) = c("False", "True")
+colnames(ggpredict_ordinaldata)[c(1, 5,6)] =c("Headlineveracity", "Rating", "group")
+levels(ggpredict_ordinaldata$group) = c("Control", "Treatment")
+ggpredict_ordinaldata
+
+ggplot(ggpredict_ordinaldata, aes(x = Rating, y = predicted)) + geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + theme_minimal() +facet_wrap(~group)
+
+
+
+```
+
+
+
+### reproduction of figure 2 without considering attention check
+
+### graph: including all
+```{r, message=FALSE}
+
+library(ggplot2)
+
+#Find out the sum for each type of news in different condition
+
+p1 <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, na.rm = TRUE, FUN = sum)
+
+
+#since the obs is 25,627, thus for each news in each condition, it observed 25,627/4 = 6406.75
+p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/6406.75, 4)*100)))
+
+#plot the graph
+
+ggplot(p1, aes(x = factor(condition), y = as.numeric(percent), fill = headlineveracity)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9)) +
+  xlab("Condition") + 
+  ylab("Likelihood of Sharing (%)") +
+  scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
+  scale_fill_discrete(name = "Headline Veracity", labels = c("False", "True"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Tests (irrelevant)
+
+#z scored
+scale(pennystudy2r1$D)
 
 
 #Additional
@@ -502,61 +637,8 @@ library(lmerTest)
 
 #model 1, item_id indicates repeated measurements for each item
 mult1 <- lmer (measurement ~ condition + condition*headlineveracity + (1|item_id),
-             data = pennys2r1long)
+             data = pennys2r1longnodi_nona)
 summary(mult1)
-
-```
-
-
-
-### reproduction of figure 2 without considering attention check
-
-### graph: including all
-```{r, message=FALSE}
-
-library(ggplot2)
-
-#Find out the sum for each type of news in different condition
-
-p1 <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, na.rm = TRUE, FUN = sum)
-
-
-#since the obs is 25,627, thus for each news in each condition, it observed 25,627/4 = 6406.75
-p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/6406.75, 4)*100)))
-
-#plot the graph
-
-ggplot(p1, aes(x = factor(condition), y = as.numeric(percent), fill = headlineveracity)) + 
-  geom_bar(stat = 'identity',position = 'dodge') + 
-  geom_text(
-    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9)) +
-  xlab("Condition") + 
-  ylab("Likelihood of Sharing (%)") +
-  scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
-  scale_fill_discrete(name = "Headline Veracity", labels = c("Fake", "Real"))
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Test (irrelevant)
-
-
 
 
 ### graph 2 attention check above and equal to 1
