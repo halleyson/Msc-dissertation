@@ -1,8 +1,10 @@
 ---
 title: "msc dissertation"
-author: "Halleyson Li"
-date: "'r Sys.Date()'"
-output: html_document
+author: "Halleyson Li 200256823"
+date: '''r Sys.Date()'''
+output:
+  html_document: default
+  pdf_document: default
 line-citations: apalike
 linkcolor: blue
 frontsize: 12pt
@@ -15,20 +17,22 @@ frontsize: 12pt
 
 # Loading data
 
+Because the original data was not encoded in UFT-8, so after download the original data, has to open it with excel and re-save it with UFT-8 encoded .csv file. But if knit/publish is not required, then this process is not required, but for loading the data (using readr), it has to be read_csv but not read.csv. 
+
 ```{r, message=FALSE}
 
 library(readr)
 
-pennycook2 <- read_csv("Pennycook et al._Study 2.csv")
+pennycook2 <- read_csv("Pennycooketal Study 2.csv")
+
 # Quick check
 head(pennycook2)
-
 ```
 
 # General steps to regenerate headline result (study 2)
 ## data cleaning
 
-```{r, message=FALSE}
+```{r, message=FALSE, results='hide'}
 
 # rename columns that contains special characters
 colnames(pennycook2)
@@ -45,9 +49,10 @@ pennycook2 <- pennycook2[!is.na(pennycook2$Fake),]
 #Choose with the column position 
 library("dplyr")
 pennystudy2r1 <- pennycook2 %>% 
-  select (c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
+  dplyr::select(c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
 
 #re-code sharing intentions (fake/real) using the scale midpoint (1-3 = 0, 4-6 = 1)
+###(06/08/21 update: realize I could do it after change it from wide to long, then only the column: "measurement" needs to perform the change.)
 
 ##Fake
 pennystudy2r1$Fake[pennystudy2r1$Fake > 0 & pennystudy2r1$Fake < 4] <- 0
@@ -150,6 +155,7 @@ pennystudy2r1$Real1_14[pennystudy2r1$Real1_14 > 3 & pennystudy2r1$Real1_14 < 7] 
 pennystudy2r1$Real1_15[pennystudy2r1$Real1_15 > 0 & pennystudy2r1$Real1_15 < 4] <- 0
 pennystudy2r1$Real1_15[pennystudy2r1$Real1_15 > 3 & pennystudy2r1$Real1_15 < 7] <- 1
 
+
 #create veracity column (Real - Fake)
 pennystudy2r1['veracity']=pennystudy2r1['Real'] - pennystudy2r1['Fake']
 
@@ -241,22 +247,22 @@ pennys2r1longa2 <- subset(pennys2r1long, attentioncheck %in% c("2","3"))
 pennys2r1longa3 <- subset(pennys2r1long, attentioncheck %in% c("3"))
 
 
-###find out the number of participants (obs) for each attention check level
-attention1 <- subset(pennys2r1long_nona, attentioncheck %in% c("1","2","3"))
-attention2 <- subset(pennys2r1long_nona, attentioncheck %in% c("2","3"))
-attention3 <- subset(pennys2r1long_nona, attentioncheck %in% c("3"))
+###find out the number of participants (obs) for each attention check level (use it to compare with No of participants in Table S5).
 
+No.participantsa1 <- subset(pennystudy2r1, dummycheck %in% c("1","2","3"))
+No.participantsa2 <- subset(pennystudy2r1, dummycheck %in% c("2","3"))
+No.participantsa3 <- subset(pennystudy2r1, dummycheck %in% c("3"))
 
 ```
 
 
 
 ## relase I should not dichotomise the scale as it loses info and reduces the power.
-```{r, message=FALSE}
+```{r, message=FALSE, results='hide'}
 #recreate a data frame that does not rescale the data to either 0,1 but from 0 to 1,so divided each value by rating = (rating - 1)/5
 
 pennystudy2r1nodi <- pennycook2 %>% 
-  select (c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
+ dplyr::select (c(1, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 2, 3, 4, 57, 60, 250, 252, 284,))
 
 
 #successful screen1 test (result = 2)
@@ -308,7 +314,7 @@ gathercols <- c("Fake1_1","Fake1_2","Fake1_3","Fake1_4","Fake1_5","Fake1_6","Fak
 
 pennys2r1longnodi <- gather_(pennys2r1longnodi, keycol, valuecol, gathercols)
 
-##no idea why it doesn't show conditions (control vs treatment) so I merge original condition to the new one
+## I merge original condition to the new one
 
 merge(pennystudy2r1nodi, pennys2r1longnodi, by.x='condition', by.y='ID')
 
@@ -333,8 +339,11 @@ pennys2r1longnodi <- pennys2r1longnodi %>%
 
 pennys2r1longnodi <- transform(pennys2r1longnodi, rescale = ave(measurement, condition, FUN = function(x) paste0((x-1)/5)))
 
+##realise that original researcher exclude the observation with answer contains na, thus the obs needs to minus 23 to match original obs 25,627
 
-##create a new column that recode item number from fake and real to 1-30, with 1-15 indicate each fake items, 16-30 indicate each real items
+pennys2r1longnodi_nona <- pennys2r1longnodi[!is.na(pennys2r1longnodi$measurement),]
+
+##create a new column that recode item number from fake and real to 1-30, with 1-15 indicate each fake items, 16-30 indicate each real items, need it for clustering robust standard errors.
 
 pennys2r1longnodi_nona <- within(pennys2r1longnodi_nona,{
   item_id <- NA
@@ -367,14 +376,12 @@ pennys2r1longnodi_nona <- within(pennys2r1longnodi_nona,{
   item_id[newstype == "Real1_12"] <- 27
   item_id[newstype == "Real1_13"] <- 28
   item_id[newstype == "Real1_14"] <- 29
-  item_id[newstype == "Real1_15"] <- 30
-})
+  item_id[newstype == "Real1_15"] <- 30})
 
 
-##realise that original researcher exclude the observation with answer contains na, thus the obs needs to minus 23 to match original obs 25,627
 
-pennys2r1longnodi_nona <- pennys2r1longnodi[!is.na(pennys2r1longnodi$measurement),]
 
+##subset based on attetnion check
 attention1nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("1","2","3"))
 attention2nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("2","3"))
 attention3nodi <- subset(pennys2r1longnodi_nona, attentioncheck %in% c("3"))
@@ -403,7 +410,6 @@ coeftest(lm1, vcov = vcovCL, cluster = ~ ID + item_id)
 #calculate the effect size cohen's d
 ##since they need to compare true vs false headline in different condition, thus, create a new data frame that only contain treatment and control with the attention check above and equal to 2, as stated in the research
 
-install.packages("effsize")
 library(effsize)
 
 ##change headlineveracity and rescale to numeric
@@ -411,13 +417,14 @@ pennys2r1longnodi_nona <- transform(pennys2r1longnodi_nona,
                    headlineveracity = as.numeric(headlineveracity),
                    rescale = as.numeric(rescale))
 
+#check the class
 sapply(pennys2r1longnodi_nona,mode)
 
-
+#subset the table based on condition
 pennys2nodicohenc <- subset(pennys2r1longnodi_nona, condition %in% c("0"))
 pennys2nodicohent <- subset(pennys2r1longnodi_nona, condition %in% c("1"))
 
-#condition vs measurement
+#condition vs measurement effect size, using participants' average measurement.
 cohen.d(pennys2nodicohent$Real,pennys2nodicohent$Fake, na.rm = TRUE)
 cohen.d(pennys2nodicohenc$Real,pennys2nodicohenc$Fake, na.rm = TRUE)
 
@@ -432,7 +439,6 @@ stargazer(lm2, type='text')
 coeftest(lm2, vcov = vcovCL, cluster = ~ ID + item_id)
 
 
-
 ##attention above 2
 lm3 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention2nodi)
 summary(lm3)
@@ -440,6 +446,7 @@ summary(lm3)
 stargazer(lm3, type='text')
 
 coeftest(lm3, vcov = vcovCL, cluster = ~ ID + item_id)
+
 
 ##attention all 3
 lm4 <- lm(rescale ~ headlineveracity + headlineveracity*condition, data = attention3nodi)
@@ -453,92 +460,76 @@ coeftest(lm4, vcov = vcovCL, cluster = ~ ID + item_id)
 ```
 
 
-## reproduction of figure 2 without considering attention check
+## reproduction of figure 2 (without considering attention check)
 
 ### graph: including all
 ```{r, message=FALSE}
 
 library(ggplot2)
+library(DescTools)
 
-#Find out the sum for each type of news in different condition
+#create a table contain mean and CI for each headline veracity in each condition
+z <- with(pennys2r1long_nona, 
+          aggregate(measurement, list(condition, headlineveracity), MeanCI))
+z <- xtabs(x ~ Group.1 + Group.2, z)
 
-p1 <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, na.rm = TRUE, FUN = sum)
+z = data.frame(z)
+
+#check the results with equation I know for sure
+dummy <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, FUN = mean)
+
+#reshape the graph
+z1 <- subset(z, Var3 %in% c("mean"))
+z2 <- subset(z, Var3 %in% c("lwr.ci"))
+z3 <- subset(z, Var3 %in% c("upr.ci"))
+
+zsummary <- cbind(z1,z2$Freq,z3$Freq)
 
 
-#since the obs is 25,627, thus for each news in each condition, it observed 25,627/4 = 6406.75
-p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/6406.75, 4)*100)))
+zsummary <- zsummary %>% 
+  dplyr::select (c(1, 2, 4, 5, 6))
 
-#plot the graph
 
-ggplot(p1, aes(x = factor(condition), y = as.numeric(percent), fill = headlineveracity)) + 
-  geom_bar(stat = 'identity',position = 'dodge') + 
+names(zsummary)[1] <- "condition"
+names(zsummary)[2] <- "headlineveracity"
+names(zsummary)[3] <- "percent"
+names(zsummary)[4] <- "lowci"
+names(zsummary)[5] <- "upci"
+
+#change the value to %
+zsummary$percent <- zsummary$percent*100
+zsummary$lowci <- zsummary$lowci*100
+zsummary$upci <- zsummary$upci*100
+str(zsummary)
+
+
+#plot the graph with error bar indicate CI
+
+ggplot(zsummary, aes(x = condition, y = percent, fill = forcats::fct_rev(headlineveracity))) + 
+  geom_bar(stat = 'identity',position = 'dodge',width = 0.5) + 
   geom_text(
-    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9)) +
+    aes(label = sprintf("%.2f",percent)), vjust = 2.5, position = position_dodge(0.5)) +
   xlab("Condition") + 
   ylab("Likelihood of Sharing (%)") +
   scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
-  scale_fill_discrete(name = "Headline Veracity", labels = c("False", "True")) + labs(title = "All Subjects")
+  scale_fill_manual(values = c("orange2","forestgreen"), name = "Headline Veracity", labels = c("True", "False")) + labs(title = "All Subjects") + 
+  geom_errorbar(aes(ymin = lowci, ymax = upci,width = 0.2),position = position_dodge(0.5), size = 0.6)
+
+##tips: forcats::fct_rev() is to reverse the order, use scale_fill_manual(values = to change colour
 
 ggsave("All Subjects bar chart.png")
+
+
+
 ```
 
 
 ##Try something new, see if it makes the results better
-###GLM
-```{r, message=FALSE}
-## use glm, stepwise approach to see how each factor explaining the sharing intention. The family for the model is binomial since the dependent variable is dichotomous.
-glm0 <- glm(measurement ~ 1, data = pennys2r1long_nona, family = binomial(link = "logit"))
 
-glm1 <- glm(measurement ~ condition, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-glm2 <- glm(measurement ~ condition + headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-glm3 <- glm(measurement ~ condition + condition*headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-glm4 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-
-glm5 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
-
-anova(glm0,glm1,glm2,glm3,glm4,test='LR')
-
-##looking at summary glm4, it is cleat that condition does not have a significant effect on measurement
-summary(glm5)
-
-###odds ratios and 95% CI
-
-exp(cbind(OR = coef(glm3), confint(glm3)))
-
-## Different attention check group
-glm41 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention1, family = binomial(link = "logit"))
-glm411 <- glm(measurement ~ condition + condition*headlineveracity, data = attention1, family = binomial(link = "logit"))
-
-summary(glm41)
-summary(glm411)
-
-
-glm42 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
-glm421 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
-
-summary(glm42)
-summary(glm421)
-
-
-glm43 <- glm(measurement ~ condition + headlineveracity, data = attention3, family = binomial(link = "logit"))
-glm431 <- glm(measurement ~ condition + condition*headlineveracity, data = attention3, family = binomial(link = "logit"))
-
-summary(glm43)
-summary(glm431)
-```
-
-
-###Ordinal logistic regression
+###Ordinal logistic regression (best to apply when using likert scale)
 ```{r, message=FALSE}
 #Ordinal logistic regression
 
-install.packages("ordinal")
-install.packages("ggeffects")
-install.packages("ggrepel")
 
 library(ordinal)
 library(ggeffects)
@@ -681,7 +672,7 @@ ggpredict_ordinaldata3
 
 ggplot(ggpredict_ordinaldata3, aes(x = Rating, y = predicted)) + 
   geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + 
-  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3) + labs(title = "All 3 Screener Correct")
+  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.55, min.segment.length = unit(0, 'lines'), size = 2.5) + labs(title = "All 3 Screener Correct")
 
 ggsave("All 3 Screener Correct.png")
 
@@ -699,16 +690,89 @@ ggsave("All 3 Screener Correct.png")
 
 
 
+### code testing (irrelevant)
+
+###GLM (bad idea, because it dicotomize the results leads to loss information and verlidity)
+
+## use glm, stepwise approach to see how each factor explaining the sharing intention. The family for the model is binomial since the dependent variable is dichotomous.
+glm0 <- glm(measurement ~ 1, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm1 <- glm(measurement ~ condition, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm2 <- glm(measurement ~ condition + headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm3 <- glm(measurement ~ condition + condition*headlineveracity, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+glm4 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+
+glm5 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = pennys2r1long_nona, family = binomial(link = "logit"))
+
+anova(glm0,glm1,glm2,glm3,glm4,test='LR')
+
+##looking at summary glm4, it is cleat that condition does not have a significant effect on measurement
+summary(glm5)
+
+###odds ratios and 95% CI
+
+exp(cbind(OR = coef(glm3), confint(glm3)))
 
 
 
+##subset the attention based on attention check
+attention1 <- subset(pennys2r1long_nona, attentioncheck %in% c("1","2","3"))
+attention2 <- subset(pennys2r1long_nona, attentioncheck %in% c("2","3"))
+attention3 <- subset(pennys2r1long_nona, attentioncheck %in% c("3"))
+
+
+## Different attention check group
+glm41 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention1, family = binomial(link = "logit"))
+glm411 <- glm(measurement ~ condition + condition*headlineveracity, data = attention1, family = binomial(link = "logit"))
+
+summary(glm41)
+summary(glm411)
+
+
+glm42 <- glm(measurement ~ condition + headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
+glm421 <- glm(measurement ~ condition + condition*headlineveracity + attentioncheck, data = attention2, family = binomial(link = "logit"))
+
+summary(glm42)
+summary(glm421)
+
+
+glm43 <- glm(measurement ~ condition + headlineveracity, data = attention3, family = binomial(link = "logit"))
+glm431 <- glm(measurement ~ condition + condition*headlineveracity, data = attention3, family = binomial(link = "logit"))
+
+summary(glm43)
+summary(glm431)
+```
+
+#old graph
 
 
 
+#Find out the sum for each type of news in different condition
+
+p1 <- aggregate(measurement~condition+headlineveracity, data = pennys2r1long_nona, na.rm = TRUE, FUN = sum)
 
 
-### Tests (irrelevant)
 
+#since the obs is 25,627, thus for each news in each condition, it observed 25,627/4 = 6406.75
+p1 <- transform(p1, percent = ave(measurement, condition, FUN = function(x) paste0(round(x/6406.75, 4)*100)))
+
+#plot the graph
+
+ggplot(p1, aes(x = factor(condition), y = as.numeric(percent), fill = headlineveracity)) + 
+  geom_bar(stat = 'identity',position = 'dodge') + 
+  geom_text(
+    aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9)) +
+  xlab("Condition") + 
+  ylab("Likelihood of Sharing (%)") +
+  scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
+  scale_fill_discrete(name = "Headline Veracity", labels = c("False", "True")) + labs(title = "All Subjects")
+
+
+```
 #z scored
 scale(pennystudy2r1$D)
 
@@ -764,7 +828,7 @@ summary(mult1)
 
 ### graph 2 attention check above and equal to 1
 
-```{r, message=FALSE}
+
 
 #condition 2: above and equal to 1
 
@@ -792,7 +856,7 @@ ggplot(p2, aes(x = condition, y = measurement/428, fill = newstype)) +
 ```
 
 ### graph 3 attention check above and equal to 2
-```{r, message=FALSE}
+
 #condition 3: above and equal to 2
 pennystudy2plot3 <- pennys2r1longa2 %>%
   select (c(1, 2, 3, 4))
@@ -814,7 +878,7 @@ ggplot(p3, aes(x = condition, y = as.numeric(percent), fill = newstype)) +
     aes(label = as.numeric (percent)), vjust = 1.5, position = position_dodge(0.9))
 ```
 ### graph 3 attention check above and equal to 2: mean
-```{r, message=FALSE}
+
 #condition 3: above and equal to 2
 pennystudy2plot3 <- pennys2r1longa2 %>%
   select (c(1, 2, 3, 4))
@@ -848,7 +912,7 @@ ggplot(p3, aes(x = condition, y = as.numeric(percent), fill = newstype)) +
 
 
 ### graph 4 attention check equal to 3
-```{r, message=FALSE}
+
 #condition 3: equal to 3
 pennystudy2plot4 <- pennys2r1longa3 %>%
   select (c(1, 2, 3, 4))
@@ -866,6 +930,14 @@ ggplot(p4, aes(x = condition, y = measurement/115, fill = newstype)) +
     aes(label = round(measurement/115, digits = 3)), vjust = 1.5, position = position_dodge(0.9))+
     scale_y_continuous(labels = scales::percent)
 ```
+
+
+
+
+
+
+
+
 
 
 
