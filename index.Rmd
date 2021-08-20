@@ -17,7 +17,7 @@ frontsize: 12pt
 
 # Loading data
 
-Because the original data was not encoded in UFT-8, so after download the original data, has to open it with excel and re-save it with UFT-8 encoded .csv file. But if knit/publish is not required, then this process is not required, but for loading the data (using readr), it has to be read_csv, not read.csv. 
+Because the orginal data was not encoded in UFT-8, so after download the original data, has to open it with excel and re-save it with UFT-8 encoded .csv file. But if knit/publish is not required, then this process is not required, but for loading the data (using readr), it has to be read_csv, not read.csv. 
 
 ```{r, message=FALSE}
 
