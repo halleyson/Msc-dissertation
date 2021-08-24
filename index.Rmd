@@ -489,6 +489,7 @@ zsummary <- cbind(z1,z2$Freq,z3$Freq)
 zsummary <- zsummary %>% 
   dplyr::select (c(1, 2, 4, 5, 6))
 
+#rename the columns for make it clear
 
 names(zsummary)[1] <- "condition"
 names(zsummary)[2] <- "headlineveracity"
@@ -513,7 +514,9 @@ ggplot(zsummary, aes(x = condition, y = percent, fill = forcats::fct_rev(headlin
   ylab("Likelihood of Sharing (%)") +
   scale_x_discrete(labels= c("0"="Control","1"="Treatment"))+
   scale_fill_manual(values = c("orange2","forestgreen"), name = "Headline Veracity", labels = c("True", "False")) + labs(title = "All Subjects") + 
-  geom_errorbar(aes(ymin = lowci, ymax = upci,width = 0.2),position = position_dodge(0.5), size = 0.6)
+  geom_errorbar(aes(ymin = lowci, ymax = upci,width = 0.2),position = position_dodge(0.5), size = 0.6) + 
+  theme( axis.title.x = element_text(size=14, face="bold"),
+axis.title.y = element_text( size=14, face="bold"), axis.text.x = element_text(size = 14, face="bold"),axis.text.y = element_text(size = 14, face="bold"))
 
 ##tips: forcats::fct_rev() is to reverse the order, use scale_fill_manual(values = to change colour
 
@@ -529,24 +532,28 @@ ggsave("All Subjects bar chart.png")
 
 ```{r, message=FALSE}
 #Ordinal logistic regression
-
-
 library(ordinal)
 library(ggeffects)
 library(ggrepel)
+ 
+
 
 ## All subjects
 ordinaldata <- pennys2r1longnodi_nona
 
+#change measurement to factor
 str(ordinaldata)
 ordinaldata$measurement <- as.factor(ordinaldata$measurement)
 
-
-ordinal <- clm(measurement ~ condition + condition*headlineveracity, data = ordinaldata, link = "logit")
+#model equation
+ordinal <- clm(measurement ~ headlineveracity + condition*headlineveracity, data = ordinaldata, link = "logit")
 
 summary(ordinal)
 
+
 exp(coef(ordinal))
+
+#ggpredict change log odds to probabilities
 
 ggpredict_ordinal <- ggpredict(ordinal, terms = c("condition","headlineveracity"))
 ggpredict_ordinaldata = data.frame(ggpredict_ordinal)
@@ -561,12 +568,11 @@ colnames(ggpredict_ordinaldata)[c(1,5,6)] =c("Headlineveracity", "Rating", "grou
 levels(ggpredict_ordinaldata$group) = c("Control", "Treatment")
 ggpredict_ordinaldata
 
+
+#plot the graph
 ggplot(ggpredict_ordinaldata, aes(x = Rating, y = predicted)) + 
   geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + 
-  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing") + labs(title = "All Subjects") 
-  
-  
-  + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3) #this gives you the box label of each points
+  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of giving such rating") + labs(title = "All Subjects") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3) #this gives you the box label of each points
 
 ggsave("All Subjects.png")
 
@@ -580,7 +586,7 @@ str(ordinaldata1)
 ordinaldata1$measurement <- as.factor(ordinaldata1$measurement)
 
 
-ordinal1 <- clm(measurement ~ condition + condition*headlineveracity, data = ordinaldata1, link = "logit")
+ordinal1 <- clm(measurement ~ headlineveracity + condition*headlineveracity, data = ordinaldata1, link = "logit")
 
 summary(ordinal1)
 
@@ -601,10 +607,7 @@ ggpredict_ordinaldata1
 
 ggplot(ggpredict_ordinaldata1, aes(x = Rating, y = predicted)) + 
   geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + 
-  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing") + labs(title = "\u2265 1 Screener Correct")
-
-
- + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3)
+  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of giving such rating") + labs(title = "\u2265 1 Screener Correct") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3)
 
 ggsave("\u2265 1 Screener Correct.png")
 
@@ -621,7 +624,7 @@ str(ordinaldata2)
 ordinaldata2$measurement <- as.factor(ordinaldata2$measurement)
 
 
-ordinal2 <- clm(measurement ~ condition + condition*headlineveracity, data = ordinaldata2, link = "logit")
+ordinal2 <- clm(measurement ~ headlineveracity + condition*headlineveracity, data = ordinaldata2, link = "logit")
 
 summary(ordinal2)
 
@@ -642,10 +645,7 @@ ggpredict_ordinaldata2
 
 ggplot(ggpredict_ordinaldata2, aes(x = Rating, y = predicted)) + 
   geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + 
-  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing")  + labs(title = "\u2265 2 Screener Correct")
-  
-
- + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3)
+  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of giving such rating")  + labs(title = "\u2265 2 Screener Correct") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.5, min.segment.length = unit(0, 'lines'), size = 3)
 
 ggsave("\u2265 2 Screener Correct.png")
 
@@ -659,7 +659,7 @@ str(ordinaldata3)
 ordinaldata3$measurement <- as.factor(ordinaldata3$measurement)
 
 
-ordinal3 <- clm(measurement ~ condition + condition*headlineveracity, data = ordinaldata3, link = "logit")
+ordinal3 <- clm(measurement ~ headlineveracity + condition*headlineveracity, data = ordinaldata3, link = "logit")
 
 summary(ordinal3)
 
@@ -680,10 +680,7 @@ ggpredict_ordinaldata3
 
 ggplot(ggpredict_ordinaldata3, aes(x = Rating, y = predicted)) + 
   geom_point(aes(color = Headlineveracity), position =position_dodge(width = 0.5)) + geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color = Headlineveracity), position = position_dodge(width = 0.5), width = 0.3) + 
-  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of Sharing") + labs(title = "All 3 Screener Correct")
-  
-
- + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.55, min.segment.length = unit(0, 'lines'), size = 2.5) 
+  theme_minimal() + facet_wrap(~group) + xlab("Likelihood of Sharing") + ylab("Predicted Probability of giving such rating") + labs(title = "All 3 Screener Correct") + geom_label_repel(aes(label=sprintf("%.3f", predicted),fill = Headlineveracity), box.padding = 0.55, min.segment.length = unit(0, 'lines'), size = 2.5) 
 
 ggsave("All 3 Screener Correct.png")
 

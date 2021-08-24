@@ -1,2 +1,46 @@
 Code book
 
+Pennycook et al., (2020) original code could be found in: https://osf.io/s5hy3/
+
+The description of the variables that used in the research were listed below.
+
+Condition: 1 = control, 2 = treatment 
+
+Fake: average rating of fake headlines
+
+Real: average rating of real headlines
+
+Discern: Real - Fake
+
+Screen 1_4 : screen question 1, choose number 4
+
+Screen 1_7 : screen question 1, choose number 7 
+
+Screen 2_3 : screen question 2, choose number 3
+
+Screen 2_5 : screen question 2, choose number 5
+
+Screen 3_2 : screen question 3, rating for second question
+
+Real 1_1 ~ Real 1_15: different real headline
+
+Fake 1_1 ~ Fake 1_15: different fake headline
+
+Pennystudy2r1: dichotomised data set
+
+Pennystudy2r1nodi: non - dichotomised data set
+
+Name end with long means changed to long formate dataset 
+
+Ending with a1 a2 a3 indicate different subset based on attention check results
+
+End with nona means the dataset eliminates all na values 
+
+Z is model created for reproducing bar chart
+
+Lm1-4 is the linear regression model, with lm1 indicate all subjects and lm3 indicate only consists with all 3 screener test subjects
+
+Ordinal is the ordinal model created for ordinal logistic regression
+
+
+Dummycheck: summary column of attention check 
